@@ -47,13 +47,10 @@ The following table outlines the JSON functions built into D1, as well as exampl
 | `json_remove(json, path, ...)`            | Remove the key and value at the specified path. | `json_remove('[60,70,80,90]', '$[0]')` returns `70,80,90]` |
 | `json_replace(json, path, value)`         | Insert a value at the given path. Overwrites an existing value, but does not create a new key if it doesn't exist. |                         |
 | `json_set(json, path, value)`             | Insert a value at the given path. Overwrites an existing value. |                        |
-| `json_type(json)` - `json_type(json, path)`|                                                    |                         |
+| `json_type(json)` - `json_type(json, path)`| Return the type of the provided value or value at the specified path. Returns one of `null`, `true`, `false`, `integer`, `real`, `text`, `array`, or `object`. | `json_type('{"temperatures":[73.6, 77.8, 80.2]}', '$.temperatures')` returns `array` |
 | `json_valid(json)`                        | Returns 0 (false) for invalid JSON, and 1 (true) for valid JSON. | `json_valid(`{invalid:json})` returns `0` |
-| `json_quote(value)`                       |                                                     |                         |
-| `json_group_array(value)`                 |                                                     |                         |
-| `json_group_object(value)`                |                                                     |                         |
-| `json_each(json)` - `json_each(json, path)`|                                                     |                         |
-| `json_tree(json)` - `json_tree(json, path)`|                                                     |                         |
+| `json_quote(value)`                       | Converts the provided SQL value into its JSON representation. |  `json_quote('[1, 2, 3]')` returns `[1,2,3]` |
+| `json_group_array(value)`                 | Returns the provided value(s) as a JSON array. |              |
  
 The SQLite [JSON extension](https://www.sqlite.org/json1.html), on which D1 builds on, has additional usage examples.
 
@@ -132,3 +129,23 @@ json_array(login_history, '$.previous_logins') --> returns 3 as an INTEGER
 ```
 
 You can also use `json_array` as a predicate in a more complex query - e.g. `WHERE json_array(some_column, '$.path.to.value') >= 5`.
+
+### Insert a value into an existing object
+
+You can insert a value into an existing JSON object or array using `json_insert()`. For example, if you have a `TEXT` column called `login_history` in a `users` table containing the following object:
+
+```json
+{"history": ["2023-05-13T15:13:02+00:00", "2023-05-14T07:11:22+00:00", "2023-05-15T15:03:51+00:00"]}
+```
+
+To add a new timestamp to the `history` array within our `login_history` column, we'd write a query resembling the following:
+
+```sql
+UPDATE users
+SET login_history = json_insert(login_history, '$.history[#]', '2023-05-15T20:33:06+00:00')
+WHERE user_id = 'aba0e360-1e04-41b3-91a0-1f2263e1e0fb'
+```
+
+We provide three arguments to `json_insert`: the name of our column containing the JSON we want to modify, the path to the key within the object to modify, and the JSON value to insert. Using `[#]` tells `json_insert` to append to the end of our array.
+
+To replace an existing value, using `json_replace()`, which will overwrite an existing key-value pair if one already exists. To set a value regardless of whether it already exists, use `json_set()`.
