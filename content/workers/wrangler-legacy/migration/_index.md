@@ -16,7 +16,6 @@ Find out more about how to migrate from Wrangler v1.
 
 {{<directory-listing>}}
 
-
 This document describes the steps to migrate a project from Wrangler v1 to Wrangler v2.
 
 Wrangler v2 ships with new features and improvements that may require some changes to your configuration.
@@ -100,4 +99,3 @@ Here is an example of some warnings and errors:
 ## Deprecations
 
 Refer to [Deprecations](/workers/wrangler/deprecations/) for more details on what is no longer supported.
-
